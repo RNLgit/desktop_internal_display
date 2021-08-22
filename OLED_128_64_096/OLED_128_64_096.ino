@@ -30,6 +30,10 @@ U8G2_SSD1306_128X64_NONAME_F_HW_I2C u8g2(U8G2_R0, /* clock=*/ SCL, /* data=*/ SD
  
 // U8G2_SSD1306_128X64_NONAME_F_SW_I2C u8g2(U8G2_R0, /* clock=*/ SCL, /* data=*/ SDA, /* reset=*/ U8X8_PIN_NONE);    //Low spped I2C
 
+String IncomingString;
+int IdleCt;
+int IdleCtMax = 5;
+int LoopDelay = 1000;
 
 
 void setup(void) {
@@ -115,6 +119,16 @@ class LCD_DISP {
     u8g2.sendBuffer();   
     delay(1000);
   }
+
+  void show_blank()
+  {
+    u8g2.clearBuffer();  
+    u8g2.sendBuffer(); 
+  }
+};
+
+
+class COMMS{
 };
 
 
@@ -126,8 +140,28 @@ void loop(void) {
   // show_page("4.92", GHZ);
   // delay(3000);  
   // draw_dot(1);
-  LCD_DISP display;
-  display.show_idle();
-  // display.show_page("53", TEMP);
-  // delay(3000);  
+  LCD_DISP display; 
+  if (Serial.available() > 0) {
+    IdleCt = 0;
+    IncomingString = Serial.readStringUntil('\n');
+    Serial.print("Ack:");
+    Serial.println(IncomingString);
+    char incoming_c[10];
+    IncomingString.toCharArray(incoming_c, IncomingString.length());
+    Serial.println(IncomingString.length());
+    char* token = strtok(incoming_c, ":;");
+    char* val = token;
+    char* type = strtok(NULL, ":;");
+    Serial.println(val);
+    Serial.println(type);
+  }
+  else{
+    if(IdleCt > IdleCtMax) {
+      display.show_blank();
+    }
+    else{
+      display.show_idle();
+      IdleCt += 1;
+    }
+  }
 }

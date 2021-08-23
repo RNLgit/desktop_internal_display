@@ -1,4 +1,4 @@
-# Desktop Internal Display by RNL
+# Desktop Internal Display
 
 This project put a LCD inside desktop PC that monitors the hardware status (definitely you need a tempered glass side wall to see it). 
 

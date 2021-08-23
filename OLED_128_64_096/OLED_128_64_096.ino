@@ -56,8 +56,8 @@ class LCD_DISP {
   int find_x_ofst(char value[], char postfx_char[]) {
     int len_val = strlen(value) - 1;
     int len_pfx = strlen(postfx_char);
-    Serial.println(len_val);
-    Serial.println(len_pfx);
+    // Serial.println(len_val);
+    // Serial.println(len_pfx);
     int x_start_pixel = (MAX_W - (len_val + len_pfx) * PAGE_VAL_PIXEL_W) / 2;  // cal starting of x pixel for value disp
     // Serial.println(x_start_pixel);
     if (x_start_pixel < 0 || x_start_pixel > MAX_W) {
@@ -131,6 +131,8 @@ class LCD_DISP {
 class COMMS{
 };
 
+LCD_DISP display; 
+unsigned long time_last_data = millis();
 
 void loop(void) {
   // show_page("1333", RPM);
@@ -140,21 +142,31 @@ void loop(void) {
   // show_page("4.92", GHZ);
   // delay(3000);  
   // draw_dot(1);
-  LCD_DISP display; 
+  
   if (Serial.available() > 0) {
     IdleCt = 0;
     IncomingString = Serial.readStringUntil('\n');
     Serial.print("Ack:");
     Serial.println(IncomingString);
     char incoming_c[10];
-    IncomingString.toCharArray(incoming_c, IncomingString.length());
-    Serial.println(IncomingString.length());
-    char* token = strtok(incoming_c, ":;");
+    IncomingString.toCharArray(incoming_c, IncomingString.length()+1);
+    const char splitter[2] = ":";
+    char* token = strtok(incoming_c, splitter);
     char* val = token;
-    char* type = strtok(NULL, ":;");
-    Serial.println(val);
-    Serial.println(type);
+    char* type = strtok(NULL, splitter);
+    char* wait = strtok(NULL, splitter);
+
+    // char* token;
+    // token = strtok(incoming_c, splitter);
+    // while(token != NULL){
+    //   Serial.println(token);
+    //   token = strtok(NULL, splitter);
+    // }
+    display.show_page(val, atoi(type));
+    time_last_data = millis();
+    // delay(atoi(wait) * 1000);
   }
+  else if (millis() - time_last_data < 5000){}
   else{
     if(IdleCt > IdleCtMax) {
       display.show_blank();
